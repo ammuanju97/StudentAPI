@@ -24,3 +24,14 @@ class StudentProfileView(generics.GenericAPIView):
             data = serializer.errors
             return Response(data, status = status.HTTP_400_BAD_REQUEST)
         return Response(data, status = status.HTTP_201_CREATED)
+    
+    def get(self, request):
+        user = StudentProfile.objects.get(user = request.user)
+        username = User.objects.get(username = request.user)
+        data = {}
+        data['username'] = username.username
+        data['email'] = username.email
+        data['image'] = str(user.image) 
+        data['DOB'] = user.DOB
+        data['address'] = user.address
+        return Response ({'Profile Details' : data}, status = status.HTTP_200_OK)
