@@ -35,3 +35,16 @@ class StudentProfileView(generics.GenericAPIView):
         data['DOB'] = user.DOB
         data['address'] = user.address
         return Response ({'Profile Details' : data}, status = status.HTTP_200_OK)
+    
+    def put(self, request):
+        user = StudentProfile.objects.get(user = request.user)
+        data = {}
+        serializer = StudentProfileSerializer(user, data = request.data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            data['message'] = 'Profile updated sucessfully'
+            return Response(data)
+        else:
+            data = serializer.errors
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data, status=status.HTTP_200_OK)
