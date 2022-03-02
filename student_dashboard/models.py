@@ -1,7 +1,8 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 
-# Create your models here.
+
+# model for student profile
 class StudentProfile(models.Model):
 
     def nameFile(instance, filename):

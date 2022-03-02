@@ -1,9 +1,11 @@
 from django.contrib.auth.models import User
-from .serializers import StudentProfileSerializer
-from .models import StudentProfile
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from .models import StudentProfile
+from .serializers import StudentProfileSerializer
+
+
 class StudentProfileView(generics.GenericAPIView):
     serializer_class = StudentProfileSerializer
     permission_classes = (IsAuthenticated,)

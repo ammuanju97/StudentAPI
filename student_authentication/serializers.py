@@ -1,7 +1,10 @@
-from rest_framework import serializers
-from django.contrib.auth.models import User
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
+# Student Registration Serializer
 class StudentRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length = 128, min_length = 3, write_only = True)
     class Meta:
@@ -11,6 +14,7 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
+# Student Login serializer
 class StudentLoginSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -27,3 +31,4 @@ class StudentLoginSerializer(TokenObtainPairSerializer):
             )
 
         return super().validate(attrs)
+        
