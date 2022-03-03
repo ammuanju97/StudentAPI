@@ -1,10 +1,40 @@
 from django.contrib.auth.models import User
 from rest_framework import generics, status
+from rest_framework import authentication, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from .models import StudentProfile
 from .serializers import StudentProfileSerializer
 
+
+class StudentsList(APIView):
+    # authentication_classes = [authentication.TokenAuthentication]
+    # permission_classes = [permissions.IsAdminUser]
+    
+    def get(self, request, format = None):
+        data = {}
+        students_name = [user.username for user in User.objects.all()]
+        data['All student in the classs'] = students_name
+        # return Response({'Names': data})
+        return Response(data)
+
+
+# student home
+class StudentHome(generics.GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        user = self.request.user
+        user1 = StudentProfile.objects.filter(user = user)
+        print(user1)
+        return StudentProfile.objects.filter(user = user)
+
+    def get(self, request):
+        data = {}
+        user = request.user
+        data['user'] = user.username
+        return Response(data, status = status.HTTP_200_OK)
 
 class StudentProfileView(generics.GenericAPIView):
     serializer_class = StudentProfileSerializer
