@@ -4,10 +4,11 @@ from rest_framework import authentication, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import StudentProfile
-from .serializers import StudentProfileSerializer
+from .models import StudentProfile, StudentMarkDetails
+from .serializers import StudentProfileSerializer, StudentMarkDetailsSerializer
 
 
+# displaying all the registered students
 class StudentsList(APIView):
     # authentication_classes = [authentication.TokenAuthentication]
     # permission_classes = [permissions.IsAdminUser]
@@ -36,6 +37,8 @@ class StudentHome(generics.GenericAPIView):
         data['user'] = user.username
         return Response(data, status = status.HTTP_200_OK)
 
+
+# Student profile create, update, edit view
 class StudentProfileView(generics.GenericAPIView):
     serializer_class = StudentProfileSerializer
     permission_classes = (IsAuthenticated,)
@@ -80,3 +83,59 @@ class StudentProfileView(generics.GenericAPIView):
             data = serializer.errors
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         return Response(data, status=status.HTTP_200_OK)
+
+
+# student academic details view
+class StudentAcademicView(APIView):
+    serializer_class = StudentMarkDetailsSerializer
+    permission_classes = (IsAuthenticated,)
+    def post(self, request):
+        serializer = StudentMarkDetailsSerializer(data = request.data)
+        data = {}
+        if serializer.is_valid():
+            mark_details = StudentMarkDetails.objects.create(
+                user = request.user,
+
+                english_mark = serializer.validated_data['english_mark'],
+                maths_mark = serializer.validated_data['maths_mark'],
+                science_mark = serializer.validated_data['science_mark'],
+                malayalam_mark = serializer.validated_data['malayalam_mark']
+            )
+            # calculating total mark
+            total_mark = mark_details.english_mark+mark_details.maths_mark+mark_details.science_mark+mark_details.malayalam_mark
+            mark_details.total_mark = total_mark
+            # calculating percentage
+            percentage = (mark_details.total_mark * 100)/ mark_details.grand_total
+            mark_details.percentage = percentage
+            if mark_details.percentage >=90 and mark_details.percentage<=100:
+                mark_details.grade = "A+"
+            elif mark_details.percentage >=80 and mark_details.percentage<=89:
+                mark_details.grade = "A"
+            elif mark_details.percentage >=70 and mark_details.percentage<=79:
+                mark_details.grade = "B+"
+            elif mark_details.percentage >=60 and mark_details.percentage<=69:
+                mark_details.grade = "B"
+            elif mark_details.percentage >=50 and mark_details.percentage<=59:
+                mark_details.grade = "C"
+            else:
+                mark_details.grade = "F"
+
+            if mark_details.grade == "A+":
+                mark_details.final_result = "Outstanding"
+            elif mark_details.grade == "A":
+                mark_details.final_result = "Excellent"
+            elif mark_details.grade == "B+":
+                mark_details.final_result = "Very Good"
+            elif mark_details.grade == "B":
+                mark_details.final_result = "Good"
+            elif mark_details.grade == "C":
+                mark_details.final_result = "Average"
+            else: 
+                mark_details.final_result = "Fail"
+            mark_details.save()
+            data['message'] = 'Mark fields added sucessfully'
+        else:
+            data = serializer.errors
+            return Response(data, status = status.HTTP_400_BAD_REQUEST)
+        return Response(data, status = status.HTTP_201_CREATED)
+         
